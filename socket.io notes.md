@@ -54,12 +54,16 @@ This project guide will walk you through the process of building a real-time web
 
 2. **Install Dependencies**
    ```bash
-   npm install express mongoose socket.io dotenv
+   npm install express mongoose socket.io dotenv cors jsonwebtoken bcryptjs multer uuid http path
    ```
 
 3. **Setting Up React Project**
    ```bash
    npx create-react-app client
+   ```
+4. **Install frontend dependencies**
+   ```bash
+   npx i axios socket.io-client webrtc-adapter react-router-dom material-ui react-dropzone
    ```
 
 ## Backend: Node.js and Express

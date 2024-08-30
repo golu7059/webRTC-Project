@@ -1,57 +1,43 @@
-import Chat from "../models/chat.model.js";
-import AppError from "../utils/error.util.js";
+// controllers/chat.controller.js
+import Chat from '../models/chat.model.js';
+import User from '../models/user.model.js';
+import AppError from '../utils/error.util.js';
 
-// Send a new message
+// Send a message
 export const sendMessage = async (req, res, next) => {
-    const { senderId, receiverId, message } = req.body;
-  
-    if (!senderId || !receiverId || (!message && !req.file)) {
-      return next(new AppError("All fields are required!", 400));
-    }
-  
-    try {
-      let mediaUrl;
-      if (req.file) {
-        mediaUrl = req.file.path;
-      }
-  
-      const chat = new Chat({
-        sender: senderId,
-        receiver: receiverId,
-        message,
-        media: mediaUrl,
-      });
-  
-      await chat.save();
-  
-      res.status(201).json({
-        success: true,
-        message: "Message sent successfully",
-        chat,
-      });
-    } catch (error) {
-      return next(new AppError(error.message, 500));
-    }
-  };
-  
+  const { senderId, receiverId, message, media } = req.body;
+  try {
+    const chatMessage = await Chat.create({
+      sender: senderId,
+      receiver: receiverId,
+      message,
+      media,
+    });
+    res.status(201).json({
+      success: true,
+      chatMessage,
+    });
+  } catch (error) {
+    next(new AppError(error.message, 500));
+  }
+};
 
-// Fetch chat history between two users
+// Get chat history
 export const getChatHistory = async (req, res, next) => {
-  const { userId1, userId2 } = req.params;
-
+  const { userId, contactId } = req.params;
   try {
     const chatHistory = await Chat.find({
       $or: [
-        { sender: userId1, receiver: userId2 },
-        { sender: userId2, receiver: userId1 },
+        { sender: userId, receiver: contactId },
+        { sender: contactId, receiver: userId },
       ],
-    }).sort({ timestamp: 1 });
+    }).sort({ createdAt: 1 });
 
     res.status(200).json({
       success: true,
       chatHistory,
     });
   } catch (error) {
-   return next(new AppError(error.message, 500));
+    next(new AppError(error.message, 500));
   }
 };

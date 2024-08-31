@@ -1,7 +1,7 @@
-import User from "../models/user.model";
-import AppError from "../utils/error.util";
+import User from "../models/user.model.js";
+import AppError from "../utils/error.util.js";
 
-const register = async (req, res, next) => {
+const signup = async (req, res, next) => {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
         return next(new AppError("All fields are required !", 401));
@@ -114,4 +114,4 @@ const logout = (req, res) => {
     }
 }
 
-export { register, login, logout }
+export { signup, login, logout };

@@ -1,5 +1,3 @@
-// app.js (updated socket.io setup)
-
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -7,8 +5,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectionToDB from "./config/databaseConfig.js";
 
-import chatRoute from './routes/chat.route.js'
-import Chat from './models/chat.model.js';  // Add this line
+import chatRoute from './routes/chatRoutes.js';
+import authRoute from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -36,6 +34,7 @@ connectionToDB();
 
 // Routes
 app.use("/api/chat", chatRoute);
+app.use("/api/auth", authRoute);
 
 const users = {};
 

@@ -1,19 +1,29 @@
 import User from "../models/user.model.js";
 import AppError from "../utils/error.util.js";
+import cloudinary from "cloudinary"; // Ensure cloudinary is configured correctly
+import fs from "fs"; // Importing the fs module
 
+const cookieOptions = {
+    expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+    secure: true,
+}
 const signup = async (req, res, next) => {
+    console.log(req.body);
     const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-        return next(new AppError("All fields are required !", 401));
-    }
-    try {
-        // check for user exist 
 
+    if (!name || !email || !password) {
+        return next(new AppError("All fields are required!", 401));
+    }
+
+    try {
+        // Check if user already exists
         let user = await User.findOne({ email });
         if (user) {
-            return next(new AppError("user already exist", 401));
+            return next(new AppError("User already exists", 401));
         }
 
+        // Create a new user with default or uploaded avatar
         user = await User.create({
             name,
             email,
@@ -27,7 +37,7 @@ const signup = async (req, res, next) => {
             },
         });
 
-        // now save file uploade on cloudinary 
+        // Save file upload on Cloudinary
         if (req.file) {
             try {
                 const result = await cloudinary.uploader.upload(req.file.path, {
@@ -41,58 +51,59 @@ const signup = async (req, res, next) => {
                     user.avatar.public_id = result.public_id;
                     user.avatar.secure_url = result.secure_url;
 
-                    // remove file from server
-                    fs.rm(req.file.path);
+                    // Remove file from server
+                    await fs.promises.rm(req.file.path); // Use async version
                 }
             } catch (error) {
-                return next(new AppError("Cloudinary Error !", 500));
+                return next(new AppError("Cloudinary Error!", 500));
             }
         }
 
         await user.save();
         user.password = undefined;
-        const token = await user.generateJWTToken();
+        const token = await user.generateJWTToken(); // Use await for consistency
         res.cookie("token", token, cookieOptions);
-        console.log("Sending cookie", res.get("set-cookie"));
 
         return res.status(201).json({
             success: true,
-            message: "user created successfully",
-            user
-        })
+            message: "User created successfully",
+            user,
+        });
 
     } catch (error) {
-        return new next(new AppError(error.message, 500));
+        return next(new AppError(error.message, 500));
     }
 }
 
 const login = async (req, res, next) => {
     const { email, password } = req.body;
     if (!email || !password) {
-        return new next(new AppError("All fields are required !", 401));
+        return next(new AppError("All fields are required!", 401));
     }
 
     try {
-        const user = User.findOne({ email }).select("+password");
+        const user = await User.findOne({ email }).select("+password"); // Added await
         if (!user) {
-            return new next(new AppError("No user with this email !", 401))
+            return next(new AppError("No user with this email!", 401));
         }
 
-        const isMatch = await user.comparePassword(password);
+        const isMatch = await user.comparePassword(password); // Ensure comparePassword is async
         if (!isMatch) {
-            return new next(new AppError("Incorrect password !", 401))
+            return next(new AppError("Incorrect password!", 401));
         }
+
         user.password = undefined;
-        const token = user.generateJWTToken()
+        const token = await user.generateJWTToken(); // Use await for consistency
         res.cookie("token", token, cookieOptions);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
-            message: "user login successfully",
-            user
-        })
+            message: "User login successfully",
+            user,
+        });
+
     } catch (error) {
-        return new next(new AppError(error.message, 500));
+        return next(new AppError(error.message, 500));
     }
 }
 
@@ -104,13 +115,13 @@ const logout = (req, res) => {
             httpOnly: true,
         });
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            message: "user logout successfully",
-        })
+            message: "User logged out successfully",
+        });
 
     } catch (error) {
-        return new next(new AppError(error.message, 500));
+        return next(new AppError(error.message, 500));
     }
 }
 

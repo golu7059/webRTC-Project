@@ -1,4 +1,4 @@
-// models/chat.model.js
+
 import { Schema, model } from 'mongoose';
 
 const chatSchema = new Schema(

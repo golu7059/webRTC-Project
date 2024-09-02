@@ -59,7 +59,7 @@ const Home = () => {
         <img
           src={homeImage3}
           alt="Chat Room"
-          className="w-full max-w-xs md:max-w-md lg:max-w-lg h-auto animate-fadeIn delay-3s animate-pulse"
+          className="w-full max-w-xs md:max-w-md lg:max-w-lg h-auto animate-fadeIn delay-3s "
         />
       </div>
     </div>

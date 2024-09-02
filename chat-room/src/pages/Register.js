@@ -18,15 +18,21 @@ const Register = () => {
     formData.append("password", password);
     formData.append("photo", photo); // Append the photo to the form data
 
+    // Debugging: Log formData contents
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
+
     try {
-      await axios.post("/api/auth/register", formData, {
+      // Send the form data to the server
+      const response = await axios.post("/api/auth/signin", formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json", 
         },
       });
-      navigate("/login");
+      navigate("/login"); // Redirect to the login page after successful registration
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Registration error:", error.response ? error.response.data : error.message);
     }
   };
 
@@ -72,7 +78,7 @@ const Register = () => {
               required
             />
           </div>
-          <div className="relative bg-gray-200">
+          <div className="relative">
             <FaCamera className="absolute left-3 top-3 text-gray-500" />
             <input
               type="file"
